@@ -26,27 +26,38 @@ class SimpleCalculatorWidget extends StatefulWidget {
 
 class _SimpleCalculatorWidgetState extends State<SimpleCalculatorWidget> {
   String _previousCalculationExpression = '';
-  String _displayExpression = '';
-  final List<String> mathOperationChars = ['+', '-', '×', '÷', '%'];
+  String _currentCalculationExpression = '0';
+  final List<String> mathOperationChars = ['+', '-', '×', '÷'];
   final List<double Function(num, num)> mathOperationFunctions = [add, subtract, multiply, divide];
-  final List<num> digitInputs = [];
+  final List<num> numberInputs = [];
   final List<double Function(num, num)> operationInputs = [];
   bool lastInputIsDigit = false;
   bool isEmptyExpression = true;
 
   void inputOperation(int operationIndex) {
-    setState(() {
-      operationInputs.add(mathOperationFunctions[operationIndex]);
-      _displayExpression += mathOperationChars[operationIndex];
-      lastInputIsDigit = false;
-      isEmptyExpression = false;
-    });
+    if (!isEmptyExpression && lastInputIsDigit) {
+      setState(() {
+          lastInputIsDigit = false;
+          isEmptyExpression = false;
+          operationInputs.add(mathOperationFunctions[operationIndex]);
+          _currentCalculationExpression += mathOperationChars[operationIndex];
+      });
+    }
   }
 
   void inputDigit(int digit) {
     setState(() {
-      digitInputs.add(digit);
-      _displayExpression += digit.toString();
+      if (isEmptyExpression) {
+        _currentCalculationExpression = '';
+      }
+      if (lastInputIsDigit) {
+        num lastNumberInput = numberInputs.last;
+        num newLastNumberInput = (lastNumberInput * 10) + digit;
+        numberInputs.last = newLastNumberInput;
+      } else {
+        numberInputs.add(digit);
+      }
+      _currentCalculationExpression += digit.toString();
       lastInputIsDigit = true;
       isEmptyExpression = false;
     });
@@ -54,9 +65,10 @@ class _SimpleCalculatorWidgetState extends State<SimpleCalculatorWidget> {
 
   void allClear() {
     setState(() {
-      digitInputs.clear();
+      numberInputs.clear();
       operationInputs.clear();
-      _displayExpression = '';
+      _currentCalculationExpression = '0';
+      lastInputIsDigit = false;
       isEmptyExpression = true;
     });
   }
@@ -85,7 +97,7 @@ class _SimpleCalculatorWidgetState extends State<SimpleCalculatorWidget> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
-                _displayExpression,
+                _currentCalculationExpression,
                 style: TextStyle(
                   fontSize: 50
                 )
